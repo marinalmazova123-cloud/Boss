@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hollow Knight — Боси та Креатор теми</title>
+  <style>
+    body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#0f1220; color:#eaeaf0; transition: background 0.3s, color 0.3s; }
+    header { background:linear-gradient(135deg,#1b1f3b,#2a2f5f); padding:20px; text-align:center; }
+    header h1 { margin:0; font-size:2.5rem; }
+    header p { opacity:0.9; }
+    .menu { display:flex; justify-content:center; gap:20px; margin-bottom:20px; }
+    .menu button { padding:8px 16px; border:none; border-radius:50%; cursor:pointer; font-size:1.2rem; background:url('https://i.imgur.com/fGrimm.png') no-repeat center; background-size:contain; width:50px; height:50px; transition:0.2s; }
+    .menu button:hover { transform:scale(1.1); }
+    .container { max-width:1200px; margin:0 auto; padding:20px; }
+    .boss-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; margin-bottom:40px; }
+    .boss-card { background:#1a1e3a; border-radius:16px; padding:16px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,.3); transition:.2s; }
+    .boss-card:hover { transform:translateY(-5px); box-shadow:0 15px 35px rgba(0,0,0,.45); }
+    .boss-card h3 { margin:10px 0 6px; cursor:pointer; }
+    .boss-info { display:none; text-align:left; font-size:0.9rem; margin-top:8px; background:#14183a; padding:10px; border-radius:10px; }
+    .creator { background:#1a1e3a; padding:20px; border-radius:16px; display:none; margin-top:40px; }
+    .creator h2 { margin-top:0; }
+    .creator input, .creator select { margin:5px 0; padding:8px; border-radius:8px; border:none; width:100%; }
+    .creator button { margin-top:10px; padding:8px 16px; border:none; border-radius:8px; cursor:pointer; }
+    .theme-preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+    .theme-element { width:120px; height:120px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:bold; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Hollow Knight</h1>
+  <p>Повний список босів та креатор теми</p>
+  <div class="menu">
+    <button id="showCreator" title="Креатор теми"></button>
+  </div>
+</header>
+<main class="container">
+<h2>Список босів</h2>
+<div class="boss-grid" id="bossGrid"></div>
+
+<div class="creator" id="creatorSection">
+  <h2>Креатор теми</h2>
+  <label for="bgColor">Колір фону:</label>
+  <input type="color" id="bgColor" value="#0f1220" />
+  <label for="textColor">Колір тексту:</label>
+  <input type="color" id="textColor" value="#eaeaf0" />
+  <label for="accentColor">Акцентний колір:</label>
+  <input type="color" id="accentColor" value="#5a3fbf" />
+  <button id="applyTheme">Застосувати тему</button>
+  <h2>Попередній перегляд</h2>
+  <div class="theme-preview" id="themePreview">
+    <div class="theme-element" style="background:#f0e7d8;color:#0f1220">Сяйво</div>
+    <div class="theme-element" style="background:#1a1e3a;color:#eaeaf0">Лицар</div>
+    <div class="theme-element" style="background:#5a3fbf;color:#fff">Хорнет</div>
+    <div class="theme-element" style="background:#2a7a2f;color:#fff">Мурашник</div>
+    <div class="theme-element" style="background:#bf3f3f;color:#fff">Ворог</div>
+  </div>
+</div>
+</main>
+<footer><p>Фан-сайт Hollow Knight</p></footer>
+
+<script>
+const bosses = [
+  {nameUK:'1. Фальшивий Лицар', nameEN:'1. False Knight', descUK:'Перший великий бос гри. Повільний, але сильний.', descEN:'First major boss. Slow but powerful.'},
+  {nameUK:'2. Хорнет (Зелений Шлях)', nameEN:'2. Hornet (Greenpath)', descUK:'Швидка та агресивна.', descEN:'Fast and aggressive.'},
+  {nameUK:'3. Лорди Богомолів', nameEN:'3. Mantis Lords', descUK:'Чесний і динамічний бій із чіткими атаками.', descEN:'Fair and dynamic fight.'},
+  {nameUK:'4. Майстер Душ', nameEN:'4. Soul Master', descUK:'Використовує магію та телепортацію.', descEN:'Uses magic and teleportation.'},
+  {nameUK:'5. Тиран Душ', nameEN:'5. Soul Tyrant', descUK:'Посилена версія Майстра Душ зі швидшими атаками.', descEN:'Enhanced Soul Master with faster attacks.'},
+  {nameUK:'6. Колекціонер', nameEN:'6. Collector', descUK:'Закликає ворогів і перевіряє контроль натовпу.', descEN:'Summons enemies, tests crowd control.'},
+  {nameUK:'7. Зламане Судно', nameEN:'7. Broken Vessel', descUK:'Інфікований лицар із різкими атаками.', descEN:'Infected knight with sharp attacks.'},
+  {nameUK:'8. Втрачений Родич', nameEN:'8. Lost Kin', descUK:'Сонна версія Зламаного Судна.', descEN:'Sleepy version of Broken Vessel.'},
+  {nameUK:'9. Захисник Гною', nameEN:'9. Gruzzled Defender', descUK:'Веселий, але небезпечний бос.', descEN:'Fun but dangerous boss.'},
+  {nameUK:'10. Білий Захисник', nameEN:'10. White Defender', descUK:'Складніша сонна версія Захисника.', descEN:'Harder sleepy version of Defender.'},
+  {nameUK:'11. Носк', nameEN:'11. Nosk', descUK:'Імітує вигляд Лицаря, атакує зненацька.', descEN:'Mimics Knight, attacks suddenly.'},
+  {nameUK:'12. Крилатий Носк', nameEN:'12. Winged Nosk', descUK:'Агресивніша форма Носка.', descEN:'More aggressive form of Nosk.'},
+  {nameUK:'13. Матір Жуків', nameEN:'13. Mother of Masks', descUK:'Викликає безліч дрібних ворогів.', descEN:'Summons many small enemies.'},
+  {nameUK:'14. Кришталевий Страж', nameEN:'14. Crystal Guardian', descUK:'Стріляє кристалами, контролює простір.', descEN:'Shoots crystals, controls space.'},
+  {nameUK:'15. Кришталевий Страж (II)', nameEN:'15. Crystal Guardian II', descUK:'Складніша повторна битва.', descEN:'Harder repeat battle.'},
+  {nameUK:'16. Лицарі-Спостерігачі', nameEN:'16. Watcher Knights', descUK:'Бій проти кількох ворогів одночасно.', descEN:'Fight multiple enemies at once.'},
+  {nameUK:'17. Уумуу', nameEN:'17. Uumuu', descUK:'Захищений оболонкою, потребує хитрості.', descEN:'Protected by shell, requires tactics.'},
+  {nameUK:'18. Герой Муру', nameEN:'18. Hero of Muru', descUK:'Сонний воїн із повільними атаками.', descEN:'Sleepy warrior with slow attacks.'},
+  {nameUK:'19. Лорд Зрадник', nameEN:'19. Lord of Betrayal', descUK:'Агресивний бос із сильними ударами.', descEN:'Aggressive boss with strong hits.'},
+  {nameUK:'20. Королева Веспа', nameEN:'20. Queen Vespa', descUK:'Таємнича правителька вулика.', descEN:'Mysterious hive ruler.'},
+  {nameUK:'21. Сірий Принц Зот', nameEN:'21. Gray Prince Zote', descUK:'Хаотичний і непередбачуваний.', descEN:'Chaotic and unpredictable.'},
+  {nameUK:'22. Хорнет — Страж', nameEN:'22. Hornet — Guardian', descUK:'Складніший повторний бій з Хорнет.', descEN:'Harder repeat fight with Hornet.'},
+  {nameUK:'23. Володар Кошмарів Ґрімм', nameEN:'23. Nightmare King Grimm', descUK:'Ритмічний і дуже швидкий бос.', descEN:'Rhythmic and very fast boss.'},
+  {nameUK:'24. Король Кошмарів Ґрімм', nameEN:'24. King Grimm', descUK:'Найскладніша форма Ґрімма.', descEN:'Hardest form of Grimm.'},
+  {nameUK:'25. Чисте Судно', nameEN:'25. Pure Vessel', descUK:'Ідеальна форма Порожнього Лицаря.', descEN:'Perfect form of Hollow Knight.'},
+  {nameUK:'26. Сяйво', nameEN:'26. Radiance', descUK:'Справжній антагоніст гри.', descEN:'True antagonist of the game.'},
+  {nameUK:'27. Абсолютне Сяйво', nameEN:'27. Absolute Radiance', descUK:'Найскладніший бос гри.', descEN:'Hardest boss in the game.'},
+  {nameUK:'28. Порожній Лицар', nameEN:'28. Hollow Knight', descUK:'Трагічний фінальний бос.', descEN:'Tragic final boss.'},
+  {nameUK:'29. Мармот', nameEN:'29. Marmot', descUK:'Сонний воїн із молотом.', descEN:'Sleepy warrior with a hammer.'},
+  {nameUK:'30. Галлієн', nameEN:'30. Galien', descUK:'Атакує з повітря косами.', descEN:'Attacks from the air with scythes.'},
+  {nameUK:'31. Горб', nameEN:'31. Hump', descUK:'Простий сонний бос.', descEN:'Simple sleepy boss.'},
+  {nameUK:'32. Старійшина Ху', nameEN:'32. Elder Hu', descUK:'Використовує магічні атаки.', descEN:'Uses magical attacks.'},
+  {nameUK:'33. Ксеро', nameEN:'33. Xero', descUK:'Літаючий воїн із списами.', descEN:'Flying warrior with spears.'},
+  {nameUK:'34. Маркот', nameEN:'34. Marcot', descUK:'Небезпечний сонний бос.', descEN:'Dangerous sleepy boss.'},
+  {nameUK:'35. Найдж', nameEN:'35. Nigel', descUK:'Закликає братів у бою.', descEN:'Summons brothers in battle.'},
+  {nameUK:'36. Облобли', nameEN:'36. Oblobb', descUK:'Бій проти двох супротивників.', descEN:'Fight against two opponents.'},
+  {nameUK:'37. Броудінґ Мавлек', nameEN:'37. Brooding Mawlek', descUK:'Агресивний ранній бос.', descEN:'Aggressive early boss.'},
+  {nameUK:'38. Король Венджфлай', nameEN:'38. King Vengefly', descUK:'Повітряний бос-початківець.', descEN:'Airborne beginner boss.'},
+  {nameUK:'39. Ґод Тамер', nameEN:'39. God Tamer', descUK:'Бій на арені з твариною.', descEN:'Arena battle with a beast.'},
+  {nameUK:'40. Король Мушок', nameEN:'40. King of Flies', descUK:'Використовує рій атак.', descEN:'Uses swarm attacks.'},
+  {nameUK:'41. Героїчна Тінь', nameEN:'41. Heroic Shadow', descUK:'Прихований складний супротивник.', descEN:'Hidden challenging opponent.'},
+  {nameUK:'42. Таємний Сон', nameEN:'42. Secret Dream', descUK:'Символічний фінальний виклик.', descEN:'Symbolic final challenge.'}
+];
+
+const bossGrid = document.getElementById('bossGrid');
+const languageSelect = document.createElement('select');
+languageSelect.innerHTML = `<option value='uk'>Українська</option><option value='en'>English</option>`;
+document.querySelector('.container').insertBefore(languageSelect, bossGrid);
+
+function renderBosses(lang){
+  bossGrid.innerHTML='';
+  bosses.forEach(b=>{
+    const card=document.createElement('div');
+    card.className='boss-card';
+    const name=lang==='uk'?b.nameUK:b.nameEN;
+    const desc=lang==='uk'?b.descUK:b.descEN;
+    card.innerHTML=`<h3>${name}</h3><div class='boss-info'><p>${desc}</p></div>`;
+    card.querySelector('h3').addEventListener('click',()=>{
+      const info=card.querySelector('.boss-info');
+      info.style.display=info.style.display==='block'?'none':'block';
+    });
+    bossGrid.appendChild(card);
+  });
+}
+languageSelect.addEventListener('change',()=>renderBosses(languageSelect.value));
+renderBosses('uk');
+
+// Theme creator functionality
+const showCreator=document.getElementById('showCreator');
+const creatorSection=document.getElementById('creatorSection');
+showCreator.addEventListener('click',()=>{
+  creatorSection.style.display=creatorSection.style.display==='none'?'block':'none';
+});
+const bgColorInput=document.getElementById('bgColor');
+const textColorInput=document.getElementById('textColor');
+const accentColorInput=document.getElementById('accentColor');
+const applyThemeBtn=document.getElementById('applyTheme');
+const themePreview=document.getElementById('themePreview');
+applyThemeBtn.addEventListener('click',()=>{
+  document.body.style.background=bgColorInput.value;
+  document.body.style.color=textColorInput.value;
+  document.querySelectorAll('.theme-element').forEach(el=>el.style.background=accentColorInput.value);
+});
+</script>
+</body>
+</html>
